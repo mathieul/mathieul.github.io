@@ -9,14 +9,14 @@ pygments: true
 # Themes are encouraged to use these universal variables 
 # so be sure to set them if your theme uses them.
 #
-title : Jekyll Bootstrap
-tagline: Site Tagline
+title : Programming And Loving It
+tagline: Playing with Elixir, Ruby and other goodies
 author :
-  name : Name Lastname
-  email : blah@email.test
-  github : username
-  twitter : username
-  feedburner : feedname
+  name : Mathieu Lajugie
+  email : mathieul@gmail.com
+  github : mathieul
+  twitter : mathieul
+  # feedburner : feedname
 
 # The production_url is only used when full-domain names are needed
 # such as sitemap.txt 
@@ -26,7 +26,7 @@ author :
 # Else if you are pushing to username.github.io, replace with your username.
 # Finally if you are pushing to a GitHub project page, include the project name at the end.
 #
-production_url : http://username.github.io
+production_url : http://mathieul.github.io
 
 # All Jekyll-Bootstrap specific configurations are namespaced into this hash
 #
@@ -101,14 +101,14 @@ JB :
   analytics :
     provider : google 
     google : 
-        tracking_id : 'UA-123-12'
-    getclicky :
-      site_id : 
-    mixpanel :
-        token : '_MIXPANEL_TOKEN_'
-    piwik :
-        baseURL : 'myserver.tld/piwik' # Piwik installation address (without protocol)
-        idsite : '1'                   # the id of the site on Piwik
+        tracking_id : 'UA-42859750-1'
+    # getclicky :
+    #   site_id : 
+    # mixpanel :
+    #     token : '_MIXPANEL_TOKEN_'
+    # piwik :
+    #     baseURL : 'myserver.tld/piwik' # Piwik installation address (without protocol)
+    #     idsite : '1'                   # the id of the site on Piwik
 
   # Settings for sharing helper. 
   # Sharing is for things like tweet, plusone, like, reddit buttons etc.
