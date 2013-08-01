@@ -9,25 +9,191 @@ tags: elixir tutorial
 
 ## Preambule
 
-I love open source software, and I have an enormous respect for all contributors
-to open source software. The world and more selfishly my life would be quite
-different if people like Richard Stallman, Linus Torvald, Larry Wall,
-Yukihiro Matsumoto, David Heinemeier Hansson, John Resig, Yehuda Katz,
-Aaron Patterson, José Valim and so many more, had not dedicated so much of their
-time and talent to building amazing languages and frameworks, but also knowledge
-and "savoir faire".
+I love open source software. I have an enormous respect for all contributors
+to open source software. The world (and more selfishly my personal world)
+would be quite different without the talent, time and dedication people like
+Richard Stallman, Linus Torvald, Larry Wall, Yukihiro "Matz" Matsumoto,
+David Heinemeier Hansson, John Resig, Yehuda Katz, Aaron Patterson, José Valim
+and so many more, made the choice to give away graciously for the world to benefit.
 
-I am very thankful to all the contributors to those goodies I use and abuse
-everyday, both for my pleasure and for making a living. So I thought I would
-try to give back, even if so little (you've got to start somewhere), by sharing
-some of what I learn. Maybe it will save people some time, maybe it will give
+I'm so thankful to all of them, I thought the least I could do was to start
+giving back a little by sharing some of my learnings through blog posts and
+tutorials. Maybe it will save people some time, maybe it will give
 ideas, and maybe some of my enthusiasm for Elixir, Ruby and other software
 goodies will be contagious.
 
 ## Elixir
 
-I am falling in love with Elixir, and it feels a lot like how I felt back in
-2006 when I met Ruby and Rails and started learning Ruby. Thank you José Valim
-for making the power of the Erlang ecosystem so accessible and taking it to
-the next level by making it so enjoyable.
+I find Elixir to be an exceptional language, and the joy I am feeling learning
+it and playing with it feels a lot like what I felt as I dug into Ruby and Rails
+and started learning Ruby back in 2006. Thank you José Valim for bringing to us
+all the power of Erlang and OTP, and making it so enjoyable and productive!
 
+There are already a lot of great resources to get hooked and start learning
+the language, like:
+
+* [Meet Elixir](https://peepcode.com/products/elixir), the great PeepCode screencast by José himself
+* [Programming Elixir](http://pragprog.com/book/elixir/programming-elixir), the book from Dave Thomas
+* [Elixir getting started guide](http://elixir-lang.org/getting_started/1.html), a great and rich guide on Elixir's website
+* [Great blog post serie](http://benjamintanweihao.github.io), by Benjamin Tan
+* [Introduction to Elixir](http://www.youtube.com/watch?v=41PvAPSX0wg), a presentation from José Valim on Youtube
+* [Elixir cheat sheet](http://media.pragprog.com/titles/elixir/ElixirCheat.pdf)
+
+Without any more talking, let's get to it and start with building this application.
+
+## Building a web application
+
+I would like to show you how to build a simple CRUD application (create, read,
+update and delete) which publishes events such as a record creation, update,
+deletion, to all the browsers opened on the application. If you've been reading
+on how to do that with Rails 4 (i.e.: [Railscast/ASCIICast on ActionController::Live](http://railscasts.com/episodes/401-actioncontroller-live?view=asciicast)), or tested it yourself,
+I believe you'll be impressed at how simple and effective it is to do it with
+Dynamo, the Elixir web framework.
+
+The application will allow to manage UML sequence diagrams, also known as
+pingpong diagrams, using a [nifty JavaScript library](http://bramp.github.io/js-sequence-diagrams/)
+to draw the diagrams using SVG in the browser. It will use Mnesia to persist
+those diagrams, Sass, Compass, Bootstrap to make the pages look pretty
+and CoffeeScript for adding front-end behaviors.
+
+## Introduction: setup the development environment and render a test page
+
+In this first post we will just go through setting up the development environment
+and render a test page to make sure we start on a good basis.
+
+The first thing to do is to install Erlang R16B and Elixir. You should follow
+the [installation section in Elixir's getting started guide](http://elixir-lang.org/getting_started/1.html).
+If you're installing on Ubuntu, start with this [blog post from Avdi Grimm](http://devblog.avdi.org/2013/07/05/installing-elixir-on-ubuntu-13-04).
+
+Once you have Elixir installed properly (you can start ```iex```, the Elixir REPL),
+you can create a new Elixir project like so:
+
+    $ mix new pingpong_diagrams
+    * creating README.md
+    * creating .gitignore
+    * creating mix.exs
+    * creating lib
+    * creating lib/pingpong_diagrams.ex
+    * creating test
+    * creating test/test_helper.exs
+    * creating test/pingpong_diagrams_test.exs
+
+    Your mix project was created with success.
+    You can use mix to compile it, test it, and more:
+
+        cd pingpong_diagrams
+        mix compile
+        mix test
+
+    Run `mix help` for more information.
+
+The command creates a project scaffold, ready to be used to include libraries,
+start testing and writing code, really convenient.
+
+The [dynamo README on the github repository](https://github.com/elixir-lang/dynamo)
+advises to use the master branch of Elixir and to clone the dynamo repository
+and install from there. I had issues using the master branch of Elixir with
+certain libraries we'll use later, so instead let's use the current stable
+version of Elixir, 0.10.0, create a new project and install dynamo in this new
+project.
+
+Let's import the Dynamo library and setup our application to use it. For that
+we edit the ```mix.exs``` file, which contains the configuration of our application.
+
+   $ cd pingpong_diagrams
+   $ vim mix.exs
+
+We edit the file and make the changes to end up with the content below:
+
+   # mix.exs
+   defmodule PingpongDiagrams.Mixfile do
+     use Mix.Project
+
+     def project do
+       [ app: :pingpong_diagrams,
+         version: "0.0.1",
+         elixir: "~> 0.10.0",
+         dynamos: [ PingpongDiagrams.Dynamo ],
+         compilers: [ :elixir, :dynamo, :app ],
+         env: [ prod: [ compile_path: "ebin" ] ],
+         compile_path: "tmp/#{Mix.env}/pingpong_diagrams/ebin",
+         deps: deps ]
+     end
+
+     def application do
+       [
+         applications: [ :cowboy, :dynamo ]
+       ]
+     end
+
+     defp deps do
+       [
+         { :cowboy, "0.8.6", github: "extend/cowboy" },
+         { :dynamo, "0.1.0.dev", github: "elixir-lang/dynamo" }
+       ]
+     end
+   end
+
+Now to actually download and compile the Dynamo library and the Cowboy web server
+we use the ```mix``` command:
+
+    $ mix deps.get
+
+    * Getting dynamo [git: "git://github.com/elixir-lang/dynamo.git"]
+    Cloning into 'deps/dynamo'...
+    [...]
+    ==> Leaving directory `/Users/mathieu/Documents/Development/Perso/pingpong-diagrams/deps/ranch'
+    ==> cowboy (compile)
+    * Compiling dynamo
+
+At that point we have Dynamo, Cowboy and their dependencies installed under
+```./deps```. If you run into problems you can change the source code from there
+and use the ```mix``` command to re-compile:
+
+    $ mix help
+    [...]
+    mix deps            # List dependencies and their status
+    mix deps.clean      # Remove dependencies' files
+    mix deps.compile    # Compile dependencies
+    mix deps.get        # Get all out of date dependencies
+    mix deps.unlock     # Unlock the given dependencies
+    mix deps.update     # Update dependencies
+    [...]
+
+We can now use the ```mix dynamo``` command to generate the project scaffold
+for your web application. Accept to overwrite all files
+
+    $ mix dynamo ../pingpong_diagrams
+
+    * creating README.md
+    /Users/[...]/pingpong_diagrams/README.md already exists, overwrite? [Yn] y
+    * creating .gitignore
+    /Users/[...]/pingpong_diagrams/.gitignore already exists, overwrite? [Yn] y
+    * creating mix.lock
+    * creating web
+    * creating web/routers
+    [...]
+    * creating test/routers
+    * creating test/routers/application_router_test.exs
+
+Let's refresh the depencies and test running our brand new web application:
+
+    $ mix deps.get
+
+    * Getting dynamo [git: "git://github.com/elixir-lang/dynamo.git"]
+    [...]
+    ==> cowboy (compile)
+    * Compiling dynamo
+
+    $ mix server
+
+    Compiled lib/pingpong_diagrams.ex
+    Compiled lib/pingpong_diagrams/dynamo.ex
+    Generated pingpong_diagrams.app
+    Running PingpongDiagrams.Dynamo at http://localhost:4000 with Cowboy on dev
+
+Now open a new browser window and go to ```http://localhost:4000```. You should
+see a welcome page, all is working!
+
+That's it for this first post. In the part 2 we will start building the pages
+to list and create pingpong diagrams. Until next time...
