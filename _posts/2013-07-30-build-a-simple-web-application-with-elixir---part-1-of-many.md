@@ -97,45 +97,21 @@ certain libraries we'll use later, so instead let's use the current stable
 version of Elixir, 0.10.0, create a new project and install dynamo in this new
 project.
 
-Let's import the Dynamo library and setup our application to use it. For that
-we edit the ```mix.exs``` file, which contains the configuration of our application.
+We edit **mix.exs** to insert the dynamo dependency, so we can install it and
+use its dynamo generator. Just replace this section:
 
-   $ cd pingpong_diagrams
-   $ vim mix.exs
+    defp deps do
+      []
+    end
 
-We edit the file and make the changes to end up with the content below:
+with this one:
 
-   # mix.exs
-   defmodule PingpongDiagrams.Mixfile do
-     use Mix.Project
+    defp deps do
+      [ { :cowboy, "0.8.6", github: "extend/cowboy" },
+        { :dynamo, github: "elixir-lang/dynamo", ref: "38d7b6afdf2e232062a11c1f408c376d0e306ec3" } ]
+    end
 
-     def project do
-       [ app: :pingpong_diagrams,
-         version: "0.0.1",
-         elixir: "~> 0.10.0",
-         dynamos: [ PingpongDiagrams.Dynamo ],
-         compilers: [ :elixir, :dynamo, :app ],
-         env: [ prod: [ compile_path: "ebin" ] ],
-         compile_path: "tmp/#{Mix.env}/pingpong_diagrams/ebin",
-         deps: deps ]
-     end
-
-     def application do
-       [
-         applications: [ :cowboy, :dynamo ]
-       ]
-     end
-
-     defp deps do
-       [
-         { :cowboy, "0.8.6", github: "extend/cowboy" },
-         { :dynamo, "0.1.0.dev", github: "elixir-lang/dynamo" }
-       ]
-     end
-   end
-
-Now to actually download and compile the Dynamo library and the Cowboy web server
-we use the ```mix``` command:
+And we use the ```mix``` command to fetch and compile dynamo:
 
     $ mix deps.get
 
@@ -146,38 +122,50 @@ we use the ```mix``` command:
     ==> cowboy (compile)
     * Compiling dynamo
 
-At that point we have Dynamo, Cowboy and their dependencies installed under
-```./deps```. If you run into problems you can change the source code from there
-and use the ```mix``` command to re-compile:
-
-    $ mix help
-    [...]
-    mix deps            # List dependencies and their status
-    mix deps.clean      # Remove dependencies' files
-    mix deps.compile    # Compile dependencies
-    mix deps.get        # Get all out of date dependencies
-    mix deps.unlock     # Unlock the given dependencies
-    mix deps.update     # Update dependencies
-    [...]
-
-We can now use the ```mix dynamo``` command to generate the project scaffold
-for your web application. Accept to overwrite all files
+Now that dynamo is installed we can now use the ```mix dynamo``` command to
+generate a dynamo (web server) in our application.Answer **y** each each time
+you're asked to overwrite a file.
 
     $ mix dynamo ../pingpong_diagrams
 
     * creating README.md
-    /Users/[...]/pingpong_diagrams/README.md already exists, overwrite? [Yn] y
+    /Users/mathieul/Documents/Development/Projects/pingpong_diagrams/README.md already exists, overwrite? [Yn] y
     * creating .gitignore
-    /Users/[...]/pingpong_diagrams/.gitignore already exists, overwrite? [Yn] y
+    /Users/mathieul/Documents/Development/Projects/pingpong_diagrams/.gitignore already exists, overwrite? [Yn] y
     * creating mix.lock
+    /Users/mathieul/Documents/Development/Projects/pingpong_diagrams/mix.lock already exists, overwrite? [Yn] n
+    * creating mix.exs
+    /Users/mathieul/Documents/Development/Projects/pingpong_diagrams/mix.exs already exists, overwrite? [Yn] n
     * creating web
     * creating web/routers
     [...]
     * creating test/routers
     * creating test/routers/application_router_test.exs
 
+I've ran into compilation issues of the dynamo web framework passed a certain
+commit when using Elixir 0.10.0. So for now I lock the dynamo commit to the last
+one I know to work fine with 0.10.0, until a new release of Elixir is coming out.
+
+As we've seen previously, you specify your dependencies in the methods ```deps```
+of your project **mix.exs** file. So let's replace the section specifying which
+versions to depend on for cowboy and dynamo, to instead require the version
+0.8.6 of cowboy and the commit 38d7b6af for dynamo. Replace this section:
+
+    defp deps do
+      [ { :cowboy, github: "extend/cowboy" },
+        { :dynamo, "0.1.0.dev", github: "elixir-lang/dynamo" } ]
+    end
+
+with this one:
+
+    defp deps do
+      [ { :cowboy, "0.8.6", github: "extend/cowboy" },
+        { :dynamo, github: "elixir-lang/dynamo", ref: "38d7b6afdf2e232062a11c1f408c376d0e306ec3" } ]
+    end
+
 Let's refresh the depencies and test running our brand new web application:
 
+    $ mix deps.unlock
     $ mix deps.get
 
     * Getting dynamo [git: "git://github.com/elixir-lang/dynamo.git"]
